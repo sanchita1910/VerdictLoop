@@ -1,0 +1,502 @@
+{
+  "manifest": {
+    "manifest_id": "manifest-644a589717947378",
+    "candidates": [
+      {
+        "candidate_id": "cand-train-1-0-888e25",
+        "split": "train",
+        "mutation_class": "raw_label_selector",
+        "seed": 1,
+        "parent_policy_id": "policy-v1",
+        "content_hash": "888e252995712fde"
+      },
+      {
+        "candidate_id": "cand-train-1-1-e92974",
+        "split": "train",
+        "mutation_class": "approval_removed",
+        "seed": 1,
+        "parent_policy_id": "policy-v1",
+        "content_hash": "e92974270c073c3e"
+      },
+      {
+        "candidate_id": "cand-train-1-2-300958",
+        "split": "train",
+        "mutation_class": "raw_label_selector",
+        "seed": 1,
+        "parent_policy_id": "policy-v1",
+        "content_hash": "3009584e40326a20"
+      },
+      {
+        "candidate_id": "cand-train-1-3-c6e48d",
+        "split": "train",
+        "mutation_class": "tenant_widened",
+        "seed": 1,
+        "parent_policy_id": "policy-v1",
+        "content_hash": "c6e48d893662137b"
+      },
+      {
+        "candidate_id": "cand-train-1-4-b537db",
+        "split": "train",
+        "mutation_class": "unmutated_safe_control",
+        "seed": 1,
+        "parent_policy_id": "policy-v1",
+        "content_hash": "b537db7d28c4f917"
+      },
+      {
+        "candidate_id": "cand-validation-1-0-5ac607",
+        "split": "validation",
+        "mutation_class": "raw_label_selector",
+        "seed": 1,
+        "parent_policy_id": "policy-v1",
+        "content_hash": "5ac607e99c31a269"
+      },
+      {
+        "candidate_id": "cand-validation-1-1-55c2e3",
+        "split": "validation",
+        "mutation_class": "approval_removed",
+        "seed": 1,
+        "parent_policy_id": "policy-v1",
+        "content_hash": "55c2e3930e7929af"
+      },
+      {
+        "candidate_id": "cand-validation-1-2-621ed2",
+        "split": "validation",
+        "mutation_class": "raw_label_selector",
+        "seed": 1,
+        "parent_policy_id": "policy-v1",
+        "content_hash": "621ed2715db925e3"
+      },
+      {
+        "candidate_id": "cand-validation-1-3-95292b",
+        "split": "validation",
+        "mutation_class": "tenant_widened",
+        "seed": 1,
+        "parent_policy_id": "policy-v1",
+        "content_hash": "95292bb76530e64b"
+      },
+      {
+        "candidate_id": "cand-validation-1-4-93767c",
+        "split": "validation",
+        "mutation_class": "unmutated_safe_control",
+        "seed": 1,
+        "parent_policy_id": "policy-v1",
+        "content_hash": "93767c863c2faa54"
+      },
+      {
+        "candidate_id": "cand-heldout-1-0-bfa959",
+        "split": "heldout",
+        "mutation_class": "raw_label_selector",
+        "seed": 1,
+        "parent_policy_id": "policy-v1",
+        "content_hash": "bfa95951d1daee6f"
+      },
+      {
+        "candidate_id": "cand-heldout-1-1-f0873e",
+        "split": "heldout",
+        "mutation_class": "approval_removed",
+        "seed": 1,
+        "parent_policy_id": "policy-v1",
+        "content_hash": "f0873e2e540c47c3"
+      },
+      {
+        "candidate_id": "cand-heldout-1-2-2e525d",
+        "split": "heldout",
+        "mutation_class": "raw_label_selector",
+        "seed": 1,
+        "parent_policy_id": "policy-v1",
+        "content_hash": "2e525d3988bdb30f"
+      },
+      {
+        "candidate_id": "cand-heldout-1-3-745fba",
+        "split": "heldout",
+        "mutation_class": "tenant_widened",
+        "seed": 1,
+        "parent_policy_id": "policy-v1",
+        "content_hash": "745fbaab7d0755a2"
+      },
+      {
+        "candidate_id": "cand-heldout-1-4-11dba8",
+        "split": "heldout",
+        "mutation_class": "unmutated_safe_control",
+        "seed": 1,
+        "parent_policy_id": "policy-v1",
+        "content_hash": "11dba8baa956c7fd"
+      }
+    ]
+  },
+  "fixture_hash": "15b396468478e1db",
+  "budget": 8,
+  "heldout_seeds": [
+    17,
+    29,
+    43,
+    71,
+    97
+  ],
+  "train_validation_seeds": [
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "selection": {
+    "current_strategy_id": "uniform-v1",
+    "selected": {
+      "strategy_id": "alias2-v2",
+      "alias_decisions": 2,
+      "budget": 8
+    },
+    "changed": true,
+    "train_missed": {
+      "ALIAS_INCONSISTENCY": 10
+    },
+    "validation_scores": [
+      {
+        "strategy_id": "uniform-v1",
+        "alias_decisions": 0,
+        "violating_trials": 15,
+        "detected_trials": 5,
+        "detection_rate": 0.3333333333333333,
+        "mean_probes_to_first": 6.466666666666667,
+        "non_alias_trials": 5,
+        "non_alias_detected": 5,
+        "safe_trials": 10,
+        "safe_false_alarms": 0
+      },
+      {
+        "strategy_id": "alias2-v2",
+        "alias_decisions": 2,
+        "violating_trials": 15,
+        "detected_trials": 13,
+        "detection_rate": 0.8666666666666667,
+        "mean_probes_to_first": 3.6,
+        "non_alias_trials": 5,
+        "non_alias_detected": 5,
+        "safe_trials": 10,
+        "safe_false_alarms": 0
+      },
+      {
+        "strategy_id": "alias4-v2",
+        "alias_decisions": 4,
+        "violating_trials": 15,
+        "detected_trials": 14,
+        "detection_rate": 0.9333333333333333,
+        "mean_probes_to_first": 3.7333333333333334,
+        "non_alias_trials": 5,
+        "non_alias_detected": 4,
+        "safe_trials": 10,
+        "safe_false_alarms": 0
+      }
+    ],
+    "reason": "validation: detection 0.33->0.87, probes-to-first 6.47->3.60"
+  },
+  "candidates": [
+    {
+      "candidate_id": "cand-heldout-1-0-bfa959",
+      "mutation_class": "raw_label_selector",
+      "gate_verdict": "REJECT",
+      "gate_failure_classes": [
+        "ALIAS_INCONSISTENCY"
+      ],
+      "target_outcome": true,
+      "regression_count": 0,
+      "full_sweep_count": 128,
+      "universe_hash": "4acf62dbd14f5a0e",
+      "strategies": {
+        "uniform-v1": {
+          "detected_seeds": [],
+          "first_hits": [
+            "NOT FOUND",
+            "NOT FOUND",
+            "NOT FOUND",
+            "NOT FOUND",
+            "NOT FOUND"
+          ],
+          "decisions_used": [
+            8,
+            8,
+            8,
+            8,
+            8
+          ],
+          "duration_ms": 0.475
+        },
+        "alias2-v2": {
+          "detected_seeds": [
+            17,
+            71
+          ],
+          "first_hits": [
+            2,
+            "NOT FOUND",
+            "NOT FOUND",
+            2,
+            "NOT FOUND"
+          ],
+          "decisions_used": [
+            8,
+            8,
+            8,
+            8,
+            8
+          ],
+          "duration_ms": 5.422
+        }
+      }
+    },
+    {
+      "candidate_id": "cand-heldout-1-1-f0873e",
+      "mutation_class": "approval_removed",
+      "gate_verdict": "REJECT",
+      "gate_failure_classes": [
+        "UNAUTHORIZED_GRANT"
+      ],
+      "target_outcome": true,
+      "regression_count": 0,
+      "full_sweep_count": 128,
+      "universe_hash": "4acf62dbd14f5a0e",
+      "strategies": {
+        "uniform-v1": {
+          "detected_seeds": [
+            17,
+            29,
+            43,
+            71,
+            97
+          ],
+          "first_hits": [
+            1,
+            2,
+            2,
+            1,
+            2
+          ],
+          "decisions_used": [
+            8,
+            8,
+            8,
+            8,
+            8
+          ],
+          "duration_ms": 0.458
+        },
+        "alias2-v2": {
+          "detected_seeds": [
+            17,
+            29,
+            43,
+            71,
+            97
+          ],
+          "first_hits": [
+            6,
+            3,
+            3,
+            3,
+            5
+          ],
+          "decisions_used": [
+            8,
+            8,
+            8,
+            8,
+            8
+          ],
+          "duration_ms": 5.403
+        }
+      }
+    },
+    {
+      "candidate_id": "cand-heldout-1-2-2e525d",
+      "mutation_class": "raw_label_selector",
+      "gate_verdict": "REJECT",
+      "gate_failure_classes": [
+        "ALIAS_INCONSISTENCY"
+      ],
+      "target_outcome": true,
+      "regression_count": 0,
+      "full_sweep_count": 128,
+      "universe_hash": "9c017d082492769b",
+      "strategies": {
+        "uniform-v1": {
+          "detected_seeds": [],
+          "first_hits": [
+            "NOT FOUND",
+            "NOT FOUND",
+            "NOT FOUND",
+            "NOT FOUND",
+            "NOT FOUND"
+          ],
+          "decisions_used": [
+            8,
+            8,
+            8,
+            8,
+            8
+          ],
+          "duration_ms": 0.472
+        },
+        "alias2-v2": {
+          "detected_seeds": [
+            17,
+            71
+          ],
+          "first_hits": [
+            2,
+            "NOT FOUND",
+            "NOT FOUND",
+            2,
+            "NOT FOUND"
+          ],
+          "decisions_used": [
+            8,
+            8,
+            8,
+            8,
+            8
+          ],
+          "duration_ms": 5.642
+        }
+      }
+    },
+    {
+      "candidate_id": "cand-heldout-1-3-745fba",
+      "mutation_class": "tenant_widened",
+      "gate_verdict": "PROMOTE",
+      "gate_failure_classes": [],
+      "target_outcome": true,
+      "regression_count": 0,
+      "full_sweep_count": 384,
+      "universe_hash": "e134003161c98bd8",
+      "strategies": {
+        "uniform-v1": {
+          "detected_seeds": [],
+          "first_hits": [
+            "NOT FOUND",
+            "NOT FOUND",
+            "NOT FOUND",
+            "NOT FOUND",
+            "NOT FOUND"
+          ],
+          "decisions_used": [
+            8,
+            8,
+            8,
+            8,
+            8
+          ],
+          "duration_ms": 0.642
+        },
+        "alias2-v2": {
+          "detected_seeds": [],
+          "first_hits": [
+            "NOT FOUND",
+            "NOT FOUND",
+            "NOT FOUND",
+            "NOT FOUND",
+            "NOT FOUND"
+          ],
+          "decisions_used": [
+            8,
+            8,
+            8,
+            8,
+            8
+          ],
+          "duration_ms": 18.044
+        }
+      }
+    },
+    {
+      "candidate_id": "cand-heldout-1-4-11dba8",
+      "mutation_class": "unmutated_safe_control",
+      "gate_verdict": "PROMOTE",
+      "gate_failure_classes": [],
+      "target_outcome": true,
+      "regression_count": 0,
+      "full_sweep_count": 128,
+      "universe_hash": "1b8f2e154240ab93",
+      "strategies": {
+        "uniform-v1": {
+          "detected_seeds": [],
+          "first_hits": [
+            "NOT FOUND",
+            "NOT FOUND",
+            "NOT FOUND",
+            "NOT FOUND",
+            "NOT FOUND"
+          ],
+          "decisions_used": [
+            8,
+            8,
+            8,
+            8,
+            8
+          ],
+          "duration_ms": 0.505
+        },
+        "alias2-v2": {
+          "detected_seeds": [],
+          "first_hits": [
+            "NOT FOUND",
+            "NOT FOUND",
+            "NOT FOUND",
+            "NOT FOUND",
+            "NOT FOUND"
+          ],
+          "decisions_used": [
+            8,
+            8,
+            8,
+            8,
+            8
+          ],
+          "duration_ms": 5.667
+        }
+      }
+    }
+  ],
+  "summary": {
+    "baseline": {
+      "strategy_id": "uniform-v1",
+      "alias_decisions": 0,
+      "violating_trials_detected": 5,
+      "violating_trials_total": 15,
+      "detection_rate": 0.3333,
+      "distinct_violating_detected": 1,
+      "distinct_violating_total": 3,
+      "mean_probes_to_first": 6.533,
+      "non_alias_detected": 5,
+      "non_alias_total": 5,
+      "safe_control_false_alarms": 0,
+      "safe_control_trials": 10,
+      "decisions_used": 200,
+      "probe_duration_ms": 2.551
+    },
+    "learned": {
+      "strategy_id": "alias2-v2",
+      "alias_decisions": 2,
+      "violating_trials_detected": 9,
+      "violating_trials_total": 15,
+      "detection_rate": 0.6,
+      "distinct_violating_detected": 3,
+      "distinct_violating_total": 3,
+      "mean_probes_to_first": 5.467,
+      "non_alias_detected": 5,
+      "non_alias_total": 5,
+      "safe_control_false_alarms": 0,
+      "safe_control_trials": 10,
+      "decisions_used": 200,
+      "probe_duration_ms": 40.176
+    }
+  },
+  "legitimate_task_accuracy": {
+    "targets_satisfied": 5,
+    "candidates": 5,
+    "promoted": 2,
+    "total_regressions": 0
+  },
+  "full_gate_decisions": 2688,
+  "notes": "Descriptive results on a bounded synthetic fixture; no statistical significance claimed. The full gate, not the probe, decides promotion."
+}
