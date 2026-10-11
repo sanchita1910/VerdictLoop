@@ -1,7 +1,7 @@
 import pytest
 
-from caselaw import fleet
-from caselaw.schema import Call, Fixture, Policy, PolicyRule, Selector
+from verdictloop import fleet
+from verdictloop.schema import Call, Fixture, Policy, PolicyRule, Selector
 
 
 @pytest.fixture(scope="session")

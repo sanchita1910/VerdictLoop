@@ -1,7 +1,7 @@
-from caselaw import fleet
-from caselaw.oracle import oracle
-from caselaw.policy import decide
-from caselaw.schema import Selector
+from verdictloop import fleet
+from verdictloop.oracle import oracle
+from verdictloop.policy import decide
+from verdictloop.schema import Selector
 
 from tests.conftest import make_call, make_policy, make_rule
 

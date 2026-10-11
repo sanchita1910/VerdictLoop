@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from caselaw.schema import (
+from verdictloop.schema import (
     Actor,
     Approval,
     Call,

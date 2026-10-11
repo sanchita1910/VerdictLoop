@@ -8,9 +8,9 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 
-from caselaw.fleet import resolve
-from caselaw.oracle import oracle
-from caselaw.schema import (
+from verdictloop.fleet import resolve
+from verdictloop.oracle import oracle
+from verdictloop.schema import (
     Call,
     Counterexample,
     FailureClass,

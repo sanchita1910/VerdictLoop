@@ -1,8 +1,8 @@
-from caselaw import fleet
-from caselaw.judge import admit
-from caselaw.oracle import oracle
-from caselaw.policy import decide
-from caselaw.schema import FailureClass
+from verdictloop import fleet
+from verdictloop.judge import admit
+from verdictloop.oracle import oracle
+from verdictloop.policy import decide
+from verdictloop.schema import FailureClass
 
 from tests.conftest import make_call, make_policy, make_rule
 
@@ -69,7 +69,7 @@ def test_no_change_fails_closed(fx, safe, target):
 def test_gate_error_fails_closed(fx, v1, safe, target, monkeypatch):
     def boom(*a, **k):
         raise RuntimeError("x")
-    monkeypatch.setattr("caselaw.judge.oracle", boom)
+    monkeypatch.setattr("verdictloop.judge.oracle", boom)
     r = admit(v1, safe, target, fx)
     assert r.verdict == "REJECT" and FailureClass.INCOMPLETE_EVALUATION in r.failure_classes
 

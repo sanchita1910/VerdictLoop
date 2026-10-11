@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from caselaw.fleet import resolve
-from caselaw.schema import Approval, Call, Fixture
+from verdictloop.fleet import resolve
+from verdictloop.schema import Approval, Call, Fixture
 
 
 def oracle(call: Call, fixture: Fixture, approvals: list[Approval] | None = None) -> bool:

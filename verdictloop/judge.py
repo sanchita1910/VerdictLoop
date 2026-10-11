@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from caselaw.detector import alias_counterexample, find_alias_inconsistencies, grant_counterexample
-from caselaw.fleet import fixture_is_intact
-from caselaw.oracle import oracle
-from caselaw.policy import decide
-from caselaw.probes import ProbeContexts, candidate_universe, universe_hash
-from caselaw.schema import (
+from verdictloop.detector import alias_counterexample, find_alias_inconsistencies, grant_counterexample
+from verdictloop.fleet import fixture_is_intact
+from verdictloop.oracle import oracle
+from verdictloop.policy import decide
+from verdictloop.probes import ProbeContexts, candidate_universe, universe_hash
+from verdictloop.schema import (
     Call,
     Counterexample,
     FailureClass,

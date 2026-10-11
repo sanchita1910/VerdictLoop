@@ -1,9 +1,9 @@
 import pytest
 
-from caselaw import fleet
-from caselaw.detector import detect_probe_violations, first_violation_index
-from caselaw.policy import decide
-from caselaw.schema import FailureClass, ProbeObservation
+from verdictloop import fleet
+from verdictloop.detector import detect_probe_violations, first_violation_index
+from verdictloop.policy import decide
+from verdictloop.schema import FailureClass, ProbeObservation
 
 from tests.conftest import make_call
 
@@ -86,7 +86,7 @@ def test_unauthorized_grant_detected_on_single_call(fx, no_approval):
 
 
 def test_first_evidence_always_in_range(fx, no_approval, raw_label, v1):
-    from caselaw.probes import UNIFORM, candidate_universe, probe
+    from verdictloop.probes import UNIFORM, candidate_universe, probe
     for cand in (no_approval, raw_label):
         u = candidate_universe(v1, cand, fx)
         for seed in (17, 29, 43, 71, 97):

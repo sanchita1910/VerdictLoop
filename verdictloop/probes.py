@@ -9,9 +9,9 @@ import random
 import time
 from dataclasses import dataclass
 
-from caselaw import policy as policy_mod
-from caselaw.fleet import resolve
-from caselaw.schema import (
+from verdictloop import policy as policy_mod
+from verdictloop.fleet import resolve
+from verdictloop.schema import (
     PROBE_BUDGET,
     WILDCARD,
     Call,

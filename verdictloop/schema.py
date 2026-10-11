@@ -1,4 +1,4 @@
-"""Shared, frozen data contracts for CaseLaw.
+"""Shared, frozen data contracts for VerdictLoop.
 
 Every module exchanges these Pydantic models. Change them only by agreement.
 """

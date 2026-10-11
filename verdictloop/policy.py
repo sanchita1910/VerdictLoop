@@ -6,8 +6,8 @@ from typing import Any
 
 from pydantic import ValidationError
 
-from caselaw.fleet import fixture_is_intact, resolve
-from caselaw.schema import (
+from verdictloop.fleet import fixture_is_intact, resolve
+from verdictloop.schema import (
     WILDCARD,
     Approval,
     Call,

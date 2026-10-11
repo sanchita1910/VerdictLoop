@@ -1,8 +1,8 @@
 import pytest
 
-from caselaw import fleet, probes
-from caselaw.probes import UNIFORM, candidate_universe, probe, universe_hash
-from caselaw.schema import PROBE_BUDGET
+from verdictloop import fleet, probes
+from verdictloop.probes import UNIFORM, candidate_universe, probe, universe_hash
+from verdictloop.schema import PROBE_BUDGET
 
 from tests.conftest import make_policy, make_rule
 
@@ -12,8 +12,8 @@ def _boom(*a, **k):
 
 
 def test_universe_does_not_call_oracle_or_decide(fx, v1, no_approval, monkeypatch):
-    monkeypatch.setattr("caselaw.oracle.oracle", _boom)
-    monkeypatch.setattr("caselaw.policy.decide", _boom)
+    monkeypatch.setattr("verdictloop.oracle.oracle", _boom)
+    monkeypatch.setattr("verdictloop.policy.decide", _boom)
     monkeypatch.setattr(probes.policy_mod, "decide", _boom)
     assert candidate_universe(v1, no_approval, fx)
 
