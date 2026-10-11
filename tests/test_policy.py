@@ -55,3 +55,18 @@ def test_wrong_tenant_and_service_denied(fx, safe):
 
 def test_unresolvable_label_denied(fx, tenant_wide):
     assert decide(tenant_wide, make_call(env_label="nonexistent"), fx) is False
+
+
+def test_forged_supplied_approval_is_ignored(fx, safe):
+    call = make_call(approval_context_id=fleet.UNAPPROVED_CTX)
+    real = next(a for a in fx.approvals if a.resource_id == "acme/checkout/staging")
+    forged = real.model_copy(update={"approval_id": "forged", "context_id": fleet.UNAPPROVED_CTX})
+    assert decide(safe, call, fx, approvals=[forged]) is False
+    assert decide(safe, make_call(), fx, approvals=[real]) is True
+
+
+def test_unknown_actor_and_tool_fail_closed(fx):
+    open_rule = make_policy(fx, make_rule(actors=("*",), tools=("*",), require_valid_approval=False))
+    assert decide(open_rule, make_call(actor="eve"), fx) is False
+    assert decide(open_rule, make_call(tool="delete_service"), fx) is False
+    assert decide(open_rule, make_call(), fx) is True
