@@ -148,6 +148,7 @@ class Candidate(_Frozen):
     seed: int
     split: Split
     content_hash: str
+    triggering_target: Call  # the blocked legitimate task this candidate is meant to unblock
     producer: str = "deterministic"
 
 

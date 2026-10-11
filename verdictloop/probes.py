@@ -137,13 +137,69 @@ def select_uniform(universe: list[Call], budget: int, rng: random.Random) -> lis
     return rng.sample(universe, budget)
 
 
+def _approval_backed(call: Call, resource_id: str, fixture: Fixture) -> bool:
+    """A fixture approval record exists for this exact context (metadata only,
+    never a policy decision or oracle verdict)."""
+    return any(
+        a.context_id == call.approval_context_id
+        and a.actor == call.actor
+        and a.tool == call.tool
+        and a.resource_id == resource_id
+        and a.incident_id == call.incident_id
+        and a.not_before <= call.eval_time < a.expires_at
+        for a in fixture.approvals
+    )
+
+
+def alias_groups(universe: list[Call], fixture: Fixture) -> list[list[Call]]:
+    """Universe calls grouped by trusted resource + full context; only the raw
+    env_label differs inside a group. Approval-backed groups come first, since
+    those are the contexts an approval-gated rule can actually allow."""
+    groups: dict[tuple, list[Call]] = {}
+    for call in universe:
+        resolved = resolve(call, fixture)
+        if resolved is None:
+            continue
+        key = (
+            resolved.resource_id, call.actor, call.tool, call.incident_id,
+            call.approval_context_id, call.eval_time,
+        )
+        groups.setdefault(key, []).append(call)
+    multi = [g for g in groups.values() if len({c.env_label for c in g}) >= 2]
+    backed = [g for g in multi if _approval_backed(g[0], resolve(g[0], fixture).resource_id, fixture)]
+    rest = [g for g in multi if g not in backed]
+    return backed + rest
+
+
+def select_alias_pairs(
+    universe: list[Call], strategy: Strategy, budget: int, rng: random.Random, fixture: Fixture
+) -> list[Call]:
+    """Spend `alias_decisions` (0/2/4) on equivalent-label pairs, the rest uniformly,
+    all from the same frozen universe."""
+    groups = alias_groups(universe, fixture)
+    n_pairs = min(strategy.alias_decisions, budget) // 2
+    backed_count = sum(
+        1 for g in groups if _approval_backed(g[0], resolve(g[0], fixture).resource_id, fixture)
+    )
+    head, tail = groups[:backed_count], groups[backed_count:]
+    rng.shuffle(head)
+    rng.shuffle(tail)
+    selected: list[Call] = []
+    for group in (head + tail)[:n_pairs]:
+        a, b = rng.sample(sorted({c.env_label: c for c in group}.values(), key=lambda c: c.env_label), 2)
+        selected += [a, b]
+    chosen = {c.case_id for c in selected}
+    remaining = [c for c in universe if c.case_id not in chosen]
+    return selected + select_uniform(remaining, budget - len(selected), rng)
+
+
 def select_calls(
     universe: list[Call], strategy: Strategy, budget: int, seed: int, fixture: Fixture
 ) -> list[Call]:
     rng = random.Random(seed)
     if strategy.alias_decisions == 0:
         return select_uniform(universe, budget, rng)
-    raise NotImplementedError("alias-pair selection lands after the MVP")
+    return select_alias_pairs(universe, strategy, budget, rng, fixture)
 
 
 def probe(
