@@ -36,7 +36,7 @@ From the repository root, use the existing Python environment at `../.venv`:
 ../.venv/bin/python -m verdictloop.cli status --run-id demo-cli
 ```
 
-Use a fresh run ID for each CLI rehearsal. `mvp` evaluates the safe and unsafe candidates with the real Judge, stores both trials, promotes only the safe policy, and verifies that the rejected candidate did not change the active pointer. `compare` stores the frozen scorecard. `resume`, launched as a new Python process, loads and promotes the eligible strategy through Atlas, then probes a predetermined candidate whose policy content was absent from the frozen manifest. Its trial records both fast-probe and full-gate evidence.
+Use a fresh run ID for each CLI rehearsal. `mvp` evaluates the safe and unsafe candidates with the real Judge, stores both trials with eight individual probe decisions and full-gate evidence, promotes only the safe policy, and verifies that the rejected candidate did not change the active pointer. `compare` stores the frozen scorecard. `resume`, launched as a new Python process, loads and promotes the eligible strategy through Atlas, then probes a predetermined candidate whose policy content was absent from the frozen manifest. Its trial records both fast-probe and full-gate evidence.
 
 The HTTP workflow uses the same Atlas-backed code:
 
@@ -63,4 +63,33 @@ On the current 18-resource fixture (`fixture_hash=15b396468478e1db`, `manifest=m
 | Uniform (`uniform-v1`) | 5/15 (33%) | 1/3 | 0/10 | 200 |
 | Learned alias pairs (`alias2-v2`) | 9/15 (60%) | 3/3 | 0/10 | 200 |
 
-The full gate separately rejected three candidates and gave PROMOTE verdicts to two; all five triggering legitimate tasks were satisfied, with zero regressions. The scorecard records each seed's first violating decision index (1–8 or `NOT FOUND`), the full-gate verdict, decision counts, and timing. These **25 held-out trials are descriptive**, not evidence of statistical significance or general performance. The Builder is deterministic and makes no live LLM proposal, so the present autonomy claim is limited to bounded strategy adaptation and evidence-gated policy promotion. In one later Atlas-backed trial, the learned fast probe missed a violation and the full gate still rejected the candidate; this is the intended safety separation.
+Both strategies detected the non-alias approval-removal candidate on all five seeds (5/5). The full gate separately rejected three candidates and gave PROMOTE verdicts to two; all five triggering legitimate tasks were satisfied, with zero regressions. A fresh Atlas evaluation took 437.232 ms. The scorecard records each seed's first violating decision index (1–8 or `NOT FOUND`), the full-gate verdict, decision counts, and timing. These **25 held-out trials are descriptive**, not evidence of statistical significance or general performance. The Builder is deterministic and makes no live LLM proposal, so the present autonomy claim is limited to bounded strategy adaptation and evidence-gated policy promotion. In one later Atlas-backed trial, the learned fast probe missed an alias inconsistency and the full gate still rejected the candidate; this is the intended safety separation.
+
+## Optional local Workshop trace
+
+The local Workshop path uses the official Raindrop CLI and the pinned `raindrop-ai==0.0.75` Python SDK. Install the SDK into `../.venv`; follow the [official Workshop installation guide](https://github.com/raindrop-ai/workshop) for the CLI, then start the local daemon. The SDK's local-only mode accepts explicit evaluator events without a cloud API key. It does not emit OpenTelemetry tool spans without a cloud API key, so the local Workshop record is a **manual evaluator event**, not an LLM trace. It contains the actual eight probe decisions, detection result, full-gate verdict, and failure classes. `VERDICTLOOP_WORKSHOP` is off by default; missing SDK or Workshop cannot change promotion or rejection.
+
+```bash
+../.venv/bin/python -m pip install raindrop-ai==0.0.75
+curl -fsSL https://raindrop.sh/install | bash
+raindrop workshop status
+```
+
+On this development machine, the verified CLI is at `/private/tmp/raindrop-bin/raindrop` and Workshop is already running on port 5899. Open `http://localhost:5899` to inspect the `verdictloop_evaluator_trial` event. A real event showed the learned probe returning `NOT FOUND` after eight decisions while the full gate returned `REJECT` for `ALIAS_INCONSISTENCY`; the offline API regression test asserts that same predetermined case. Workshop currently displays the manual event under a generic LLM span heading with no model or token counts, so describe it as a deterministic evaluator event in the demo.
+
+## Video demo commands
+
+From the repository root, use a new run ID for each rehearsal or recording. The `resume` command must be a separate Python invocation to show that Atlas restored the selected strategy.
+
+```bash
+RUN_ID=demo-video-$(date +%Y%m%d%H%M%S)
+../.venv/bin/python -m pytest -q
+../.venv/bin/python -m verdictloop.cli smoke-atlas
+../.venv/bin/python -m verdictloop.cli init --run-id "$RUN_ID" --seed 17
+../.venv/bin/python -m verdictloop.cli mvp --run-id "$RUN_ID"
+../.venv/bin/python -m verdictloop.cli compare --run-id "$RUN_ID"
+VERDICTLOOP_WORKSHOP=1 RAINDROP_LOCAL_DEBUGGER=http://127.0.0.1:5899/v1/ ../.venv/bin/python -m verdictloop.cli resume --run-id "$RUN_ID"
+../.venv/bin/python -m verdictloop.cli status --run-id "$RUN_ID"
+```
+
+Allow two three-minute rehearsals before recording; the second may be narration only. Keep the local `.env` private and off screen. If Workshop is unavailable during the video, leave `VERDICTLOOP_WORKSHOP` unset; the Atlas and full-gate demo still works.

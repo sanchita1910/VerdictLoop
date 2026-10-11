@@ -117,7 +117,14 @@ def test_compare_resume_persist_real_scorecard_and_unseen_later_trial() -> None:
             assert later["decisions_used"] == 8
             assert len(later["observations"]) == 8
             assert later["universe_hash"]
-            assert later["full_gate_verdict"] in {"PROMOTE", "REJECT"}
+            # Regression case observed in a real local Workshop trace:
+            # the learned eight-decision probe misses this alias inconsistency,
+            # but the independent full fixture gate still rejects it.
+            assert later["detected"] is False
+            assert later["first_violation_index"] == "NOT FOUND"
+            assert later["full_gate_verdict"] == "REJECT"
+            assert "ALIAS_INCONSISTENCY" in later["full_gate_failure_classes"]
+            assert later["full_sweep_count"] == 128
             stored_later = db["policies"].find_one({"_id": f"candidate:{later['candidate_id']}"})
             frozen_hashes = {row["content_hash"] for row in card["manifest"]["candidates"]}
             assert stored_later["content_hash"] not in frozen_hashes

@@ -20,7 +20,19 @@ def test_mvp_promotes_safe_and_persists_rejected_unsafe_trial() -> None:
     assert result.safe_trial.verdict == "PROMOTE"
     assert not result.unsafe_trial.full_gate_result.passed
     assert result.unsafe_trial.verdict == "REJECT"
+    for trial in (result.safe_trial, result.unsafe_trial):
+        fast = trial.fast_probe_result
+        assert fast is not None
+        assert fast.seed == 17
+        assert fast.budget == 8
+        assert fast.decisions_used == len(fast.observations) == 8
+        assert fast.strategy_id == trial.strategy_id
+        assert fast.candidate_hash == trial.full_gate_result.candidate_hash
+        assert fast.fixture_hash == trial.fixture_hash
+        assert fast.universe_hash == trial.universe_hash
+        assert [observation.index for observation in fast.observations] == list(range(1, 9))
     assert len(store.trials.documents) == 2
+    assert all(row.get("fast_probe_result") is not None for row in store.trials.documents.values())
     active = store.load_active_state("integrated-demo")
     assert active.policy.version == 2
     assert active.state.revision == 1

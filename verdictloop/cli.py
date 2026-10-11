@@ -14,6 +14,7 @@ from verdictloop.fleet import RESTART, build_fixture, resolve
 from verdictloop.judge import admit
 from verdictloop.oracle import oracle
 from verdictloop.policy import decide
+from verdictloop.probes import candidate_universe, probe
 from verdictloop.schema import (
     Call,
     Candidate,
@@ -21,6 +22,7 @@ from verdictloop.schema import (
     Fixture,
     Policy,
     PolicyRule,
+    PROBE_BUDGET,
     Selector,
     Strategy,
     WILDCARD,
@@ -145,6 +147,23 @@ def _is_exact_approval_removal(base: Policy, candidate: Candidate, fixture: Fixt
     return after[next(iter(added))] == expected
 
 
+def _fast_probe(active, base: Policy, candidate: Candidate, gate):
+    """Record the bounded probe beside the independent full-gate verdict."""
+    universe = candidate_universe(base, candidate.policy, active.fixture)
+    seed = int(active.state.objective_metrics["probe_seed"])
+    fast = probe(candidate.policy, universe, active.strategy, PROBE_BUDGET, seed,
+                 fixture=active.fixture)
+    if (
+        fast.decisions_used != PROBE_BUDGET
+        or len(fast.observations) != PROBE_BUDGET
+        or fast.universe_hash != gate.universe_hash
+        or fast.fixture_hash != active.fixture.fixture_hash
+        or fast.candidate_hash != candidate.content_hash
+    ):
+        raise StoreError("Probe and full gate used different evaluation conditions")
+    return fast
+
+
 def init_run(store: CaseLawStore, run_id: str, seed: int) -> ActiveRunState:
     """Persist one frozen B fixture and create a version-one active run."""
     fixture = build_fixture()
@@ -184,6 +203,7 @@ def _evaluate_safe(store: CaseLawStore, run_id: str) -> CandidateOutcome:
 
     safe = propose_safe_policy(target, active.policy, fixture)
     gate = admit(active.policy, safe.policy, target, fixture)
+    fast = _fast_probe(active, active.policy, safe, gate)
     after = decide(safe.policy, target, fixture)
     if not (
         gate.passed
@@ -205,6 +225,7 @@ def _evaluate_safe(store: CaseLawStore, run_id: str) -> CandidateOutcome:
         fixture_hash=fixture.fixture_hash,
         universe_hash=gate.universe_hash,
         triggering_target=target,
+        fast_probe_result=fast,
         full_gate_result=gate,
         verdict=gate.verdict,
         counterexamples=gate.counterexamples,
@@ -245,6 +266,7 @@ def _evaluate_unsafe(store: CaseLawStore, run_id: str, base_policy: Policy) -> C
     # B's mutation carries its own legitimate target, which may be a different
     # tenant or environment from the Builder's original checkout call.
     gate = admit(base_policy, unsafe.policy, unsafe.triggering_target, fixture)
+    fast = _fast_probe(active, base_policy, unsafe, gate)
     if (
         gate.passed
         or gate.verdict != "REJECT"
@@ -262,6 +284,7 @@ def _evaluate_unsafe(store: CaseLawStore, run_id: str, base_policy: Policy) -> C
         fixture_hash=fixture.fixture_hash,
         universe_hash=gate.universe_hash,
         triggering_target=unsafe.triggering_target,
+        fast_probe_result=fast,
         full_gate_result=gate,
         verdict=gate.verdict,
         counterexamples=gate.counterexamples,
@@ -458,6 +481,8 @@ def resume_run(store: CaseLawStore, run_id: str) -> dict:
     store.save_candidate(candidate)
     store.save_policy(candidate.policy)
     store.save_trial(trial)
+    from verdictloop.tracing import trace_trial
+    trace_trial(trial, reloaded.fixture)
     after = store.load_active_state(run_id)
     if after.state != reloaded.state:
         raise StoreError("Later rejected trial unexpectedly changed active state")
