@@ -40,6 +40,8 @@ def trace_trial(trial: Trial, fixture: Fixture) -> bool:
         )
         detected = detect_probe_violations(list(fast.observations), fixture)
         trace_input = {
+            "run_id": trial.run_id,
+            "trial_id": trial.trial_id,
             "candidate_id": trial.candidate_id,
             "strategy_id": trial.strategy_id,
             "fixture_hash": trial.fixture_hash,
