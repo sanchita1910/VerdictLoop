@@ -59,11 +59,16 @@ function setBusy(busy) {
 
 function updateButtons() {
   if (state.busy) return;
-  byId("safe-button").disabled = state.phase === "safe_promoted" || state.phase === "unsafe_rejected";
+  const safeDone = state.phase === "safe_promoted" || state.phase === "unsafe_rejected";
+  byId("safe-button").disabled = safeDone;
   byId("unsafe-button").disabled = state.phase !== "safe_promoted";
-  byId("compare-button").disabled = false;
-  byId("resume-button").disabled = false;
+  byId("compare-button").disabled = !safeDone || state.compared;
+  byId("resume-button").disabled = !state.compared;
   byId("refresh-button").disabled = false;
+  put("unsafe-help", state.phase === "unsafe_rejected" ?
+    "This dangerous change was tested and rejected. Use a new run name to try again." :
+    safeDone ? "The safe policy is active. Now test what happens if approval checks are removed." :
+      "First approve the safe change. Then test a rule that removes approval checks.");
 }
 
 function setPhase(phase) {
@@ -154,6 +159,63 @@ function renderTrialHistory(data) {
   host.replaceChildren(list);
 }
 
+function renderOutcomeCard(kind, record) {
+  const trial = record?.trial;
+  const card = byId(`${kind}-card`);
+  const technical = byId(`${kind}-technical`);
+  const witness = byId(`${kind}-witness`);
+  card.classList.toggle("has-result", Boolean(trial));
+  card.classList.toggle("is-promote", trial?.verdict === "PROMOTE");
+  card.classList.toggle("is-reject", trial?.verdict === "REJECT");
+  technical.replaceChildren();
+  witness.hidden = true;
+  witness.textContent = "";
+  if (!trial) {
+    put(`${kind}-verdict`, "Not tested yet");
+    put(`${kind}-explanation`, kind === "safe" ?
+      "Test the safe change to see the actual Judge decision." :
+      "The dangerous test unlocks after the safe policy is active.");
+    put(`${kind}-proof`, "No saved trial for this run.");
+    return;
+  }
+
+  const safe = kind === "safe";
+  const approvedRestart = safe && trial.verdict === "PROMOTE" &&
+    record.call?.tool === "restart_service" && record.oracle_decision === true &&
+    record.before_decision === false && record.candidate_decision === true;
+  const unauthorizedRestart = !safe && trial.verdict === "REJECT" &&
+    record.call?.tool === "restart_service" && record.oracle_decision === false &&
+    record.candidate_decision === true && trial.failure_classes?.includes("UNAUTHORIZED_GRANT");
+  put(`${kind}-verdict`, safe && trial.verdict === "PROMOTE" ? "APPROVED (PROMOTED)" :
+    !safe && trial.verdict === "REJECT" ? "REJECTED" : value(trial.verdict));
+  put(`${kind}-explanation`, approvedRestart ? "An approved server restart is now allowed." :
+    unauthorizedRestart ? "This rule would allow unauthorized server restarts." :
+      "Review the saved decision and evidence below.");
+  const checks = Number.isInteger(trial.full_sweep_count) ? `${trial.full_sweep_count} checks` : "a full safety check";
+  const examples = Array.isArray(trial.counterexamples) ? trial.counterexamples.length : 0;
+  put(`${kind}-proof`, safe ?
+    `Saved evidence: ${checks}; ${value(trial.regression_count, "—")} regressions.` :
+    `Saved evidence: ${checks}; ${examples} recorded counterexamples.`);
+  if (approvedRestart) {
+    witness.textContent = `Saved call ${value(record.call.case_id)}: the policy changed DENY → ALLOW; the independent check says ALLOW.`;
+    witness.hidden = false;
+  } else if (!safe) {
+    const example = trial.counterexamples?.find((item) =>
+      item.failure_class === "UNAUTHORIZED_GRANT" && item.policy_decisions?.[0] === true &&
+      item.oracle_decisions?.[0] === false && item.case_ids?.[0]);
+    if (example) {
+      witness.textContent = `Saved example ${example.case_ids[0]}: proposed rule ALLOW; independent check DENY.`;
+      witness.hidden = false;
+    }
+  }
+
+  const note = document.createElement("p");
+  note.textContent = "Trial IDs, policy rules, hashes, and full counterexamples are shown below. Raw quick-probe decisions are stored in Atlas; traced later trials can also be inspected in Workshop.";
+  const raw = document.createElement("pre");
+  raw.textContent = JSON.stringify(record, null, 2);
+  technical.append(note, raw);
+}
+
 function renderCandidate(candidate, fallbackDiff) {
   if (!candidate) {
     put("candidate-id", "Awaiting proposal");
@@ -242,6 +304,7 @@ function renderTrialAction(data, kind) {
   renderCandidate(data.candidate, data.policy_diff);
   const trial = data.trial || {};
   renderTrialDetails(trial, data.oracle_decision, data.candidate_decision, data.call);
+  renderOutcomeCard(kind, data);
   const kindLabel = kind === "safe" ? "Safe candidate" : "Approval-removal candidate";
   logEvent(`${kindLabel}: ${value(trial.verdict)}. Trial ${value(trial.trial_id)} persisted.`);
   announce(`${kindLabel} received a real ${value(trial.verdict)} verdict. Active Atlas state reloaded.`);
@@ -252,87 +315,60 @@ function renderComparison(data, quiet = false) {
   const host = byId("comparison");
   host.classList.remove("is-unavailable");
   host.replaceChildren();
-  if (!card.summary?.baseline || !card.summary?.learned || !Array.isArray(card.candidates)) {
+  const baseline = card.summary?.baseline;
+  const learned = card.summary?.learned;
+  if (!baseline || !learned) {
+    const unavailable = document.createElement("p");
+    unavailable.textContent = "This saved evaluation has no comparison summary to display.";
+    host.append(unavailable);
+    const details = document.createElement("details");
+    const title = document.createElement("summary");
+    title.textContent = "Technical details";
     const pre = document.createElement("pre");
     pre.textContent = JSON.stringify(card, null, 2);
-    host.append(pre);
+    details.append(title, pre);
+    host.append(details);
   } else {
-    const meta = document.createElement("p");
-    meta.className = "comparison-meta";
-    const seeds = Array.isArray(card.heldout_seeds) ? card.heldout_seeds.join(", ") : "—";
-    const duration = typeof data.evaluation_duration_ms === "number" ? ` · Evaluation ${Math.round(data.evaluation_duration_ms)} ms` : "";
-    meta.textContent = `Manifest ${value(card.manifest?.manifest_id)} · Fixture ${value(card.fixture_hash)} · ${card.candidates.length} held-out candidates · Seeds ${seeds} · Budget ${value(card.budget)} decisions per trial${duration}`;
-    host.append(meta);
-
+    const label = document.createElement("p");
+    label.className = "comparison-label";
+    label.textContent = `Small synthetic held-out evaluation · same ${value(card.budget)}-decision limit`;
+    host.append(label);
     const grid = document.createElement("div");
-    grid.className = "metric-grid";
-    for (const [label, summary] of [["Uniform", card.summary.baseline], ["Learned", card.summary.learned]]) {
+    grid.className = "learning-grid";
+    for (const [name, summary, className] of [
+      ["Before learning", baseline, "before"], ["After learning", learned, "after"],
+    ]) {
       const box = document.createElement("div");
-      box.className = "metric-card";
+      box.className = `learning-card ${className}`;
       const heading = document.createElement("h3");
-      heading.textContent = `${label} · ${value(summary.strategy_id)}`;
+      heading.textContent = name;
       const rate = document.createElement("strong");
-      rate.textContent = `${summary.violating_trials_detected}/${summary.violating_trials_total}`;
+      rate.textContent = `${value(summary.distinct_violating_detected)}/${value(summary.distinct_violating_total)}`;
       const description = document.createElement("p");
-      const percent = typeof summary.detection_rate === "number" ? `${Math.round(summary.detection_rate * 100)}%` : "—";
-      description.textContent = `violating trials found within budget (${percent}); ${summary.distinct_violating_detected}/${summary.distinct_violating_total} distinct violating candidates`;
-      const details = document.createElement("small");
-      details.textContent = `Alias decisions: ${summary.alias_decisions} · Mean first index: ${summary.mean_probes_to_first} · Probe decisions: ${summary.decisions_used} · Duration: ${summary.probe_duration_ms} ms · Safe false alarms: ${summary.safe_control_false_alarms}/${summary.safe_control_trials}`;
-      box.append(heading, rate, description, details);
+      description.textContent = "dangerous candidates detected";
+      const bar = document.createElement("div");
+      bar.className = "learning-bar";
+      bar.setAttribute("aria-hidden", "true");
+      const fill = document.createElement("span");
+      const total = Number(summary.distinct_violating_total);
+      const detected = Number(summary.distinct_violating_detected);
+      fill.style.width = Number.isFinite(total) && total > 0 && Number.isFinite(detected) ?
+        `${Math.max(0, Math.min(100, detected / total * 100))}%` : "0%";
+      bar.append(fill);
+      const secondary = document.createElement("p");
+      secondary.className = "learning-secondary";
+      secondary.textContent = `${value(summary.violating_trials_detected)}/${value(summary.violating_trials_total)} violating trials found`;
+      box.append(heading, rate, description, bar, secondary);
       grid.append(box);
     }
     host.append(grid);
-
-    const selection = document.createElement("p");
-    selection.className = "comparison-note";
-    selection.textContent = `Validation selected ${value(card.selection?.selected?.strategy_id)}. ${value(card.selection?.reason, "")}`;
-    host.append(selection);
-
-    const tableScroll = document.createElement("div");
-    tableScroll.className = "table-scroll";
-    const table = document.createElement("table");
-    const thead = document.createElement("thead");
-    const header = document.createElement("tr");
-    for (const title of ["Candidate / mutation", "Full gate", "Uniform first hit, by seed", "Learned first hit, by seed"]) {
-      const cell = document.createElement("th");
-      cell.scope = "col";
-      cell.textContent = title;
-      header.append(cell);
-    }
-    thead.append(header);
-    const tbody = document.createElement("tbody");
-    const baselineId = card.summary.baseline.strategy_id;
-    const learnedId = card.summary.learned.strategy_id;
-    for (const row of card.candidates) {
-      const tr = document.createElement("tr");
-      const cells = [
-        `${value(row.candidate_id)} · ${value(row.mutation_class)}`,
-        value(row.gate_verdict),
-        Array.isArray(row.strategies?.[baselineId]?.first_hits) ? row.strategies[baselineId].first_hits.join(" / ") : "—",
-        Array.isArray(row.strategies?.[learnedId]?.first_hits) ? row.strategies[learnedId].first_hits.join(" / ") : "—",
-      ];
-      for (const content of cells) {
-        const cell = document.createElement("td");
-        cell.textContent = content;
-        tr.append(cell);
-      }
-      tbody.append(tr);
-    }
-    table.append(thead, tbody);
-    tableScroll.append(table);
-    host.append(tableScroll);
-
-    const accounting = data.decision_accounting;
-    if (accounting) {
-      const counts = document.createElement("p");
-      counts.className = "comparison-note";
-      counts.textContent = `Authorization evaluations: uniform probe ${value(accounting.uniform_fast_policy_decisions)}, learned probe ${value(accounting.learned_fast_policy_decisions)}, full gates ${value(accounting.full_gate_authorization_evaluations)}; total ${value(accounting.all_heldout_authorization_evaluations)}.`;
-      host.append(counts);
-    }
-    const foot = document.createElement("p");
-    foot.className = "comparison-note";
-    foot.textContent = value(card.notes, "Descriptive bounded-fixture result.");
-    host.append(foot);
+    const details = document.createElement("details");
+    const title = document.createElement("summary");
+    title.textContent = "Technical details";
+    const pre = document.createElement("pre");
+    pre.textContent = JSON.stringify(data, null, 2);
+    details.append(title, pre);
+    host.append(details);
   }
   state.compared = true;
   setPhase(state.phase);
@@ -349,22 +385,25 @@ function renderResume(data) {
   const host = byId("resume-result");
   host.classList.remove("is-unavailable");
   host.replaceChildren();
+  const trial = data.later_trial;
+  const blindSpot = trial?.first_violation_index === "NOT FOUND" &&
+    trial.full_gate_verdict === "REJECT" &&
+    trial.full_gate_failure_classes?.includes("ALIAS_INCONSISTENCY");
+  const intro = document.createElement("p");
+  intro.className = blindSpot ? "blind-spot-callout" : "comparison-note";
+  intro.textContent = blindSpot ?
+    "The quick test missed this danger. The full safety check rejected it." :
+    trial ? "A later candidate was tested using the Atlas-loaded strategy." :
+      "The active strategy was read from Atlas. No later trial was returned.";
+  host.append(intro);
   const summary = document.createElement("dl");
   summary.className = "readback-grid";
   const fields = [
-    ["Selected strategy", data.selected_strategy?.strategy_id],
-    ["Atlas active strategy", data.active?.strategy_id],
-    ["Atlas revision", data.active?.revision],
-    ["Promotion eligible", data.promotion_eligible],
-    ["Pointer promoted now", data.promoted],
-    ["Already active", data.already_active],
+    ["Fast probe", trial?.first_violation_index],
+    ["Full gate", trial?.full_gate_verdict],
+    ["Failure", trial?.full_gate_failure_classes?.join(", ")],
+    ["Active Atlas strategy", data.active?.strategy_id],
   ];
-  if (data.later_trial) {
-    fields.push(["Later trial", data.later_trial.trial_id || data.later_trial.candidate_id]);
-    fields.push(["Later trial strategy", data.later_trial.strategy_id]);
-    fields.push(["Later trial probe", `${value(data.later_trial.decisions_used)} decisions · first hit ${value(data.later_trial.first_violation_index)}`]);
-    fields.push(["Later trial full gate", data.later_trial.full_gate_verdict]);
-  }
   for (const [label, content] of fields) {
     const row = document.createElement("div");
     const term = document.createElement("dt");
@@ -375,15 +414,9 @@ function renderResume(data) {
     summary.append(row);
   }
   host.append(summary);
-  const explanation = document.createElement("p");
-  explanation.className = "comparison-note";
-  explanation.textContent = data.later_trial ?
-    "This server used the Atlas-loaded strategy on a later trial. Run CLI resume in a fresh process to demonstrate cross-process reuse." :
-    "This is an Atlas pointer readback in the current server process. Run CLI resume in a fresh process for cross-process reuse.";
-  host.append(explanation);
   const details = document.createElement("details");
   const title = document.createElement("summary");
-  title.textContent = "Full Atlas readback response";
+  title.textContent = "Technical details";
   const pre = document.createElement("pre");
   pre.textContent = JSON.stringify(data, null, 2);
   details.append(title, pre);
@@ -395,6 +428,8 @@ function renderResume(data) {
 function renderStatus(data, quiet = false, preserveCurrentTrial = false) {
   renderActive(data.active);
   setPhase(data.phase);
+  renderOutcomeCard("safe", data.latest_safe_trial);
+  renderOutcomeCard("unsafe", data.latest_unsafe_trial);
   renderTrialHistory(data);
   renderBlockedTask(data.blocked_task);
   if (!preserveCurrentTrial) {
@@ -426,6 +461,7 @@ function runId() {
   const id = byId("run-id").value.trim();
   if (!id) throw new Error("Enter a run ID first.");
   if (!/^[A-Za-z0-9][A-Za-z0-9_.-]{0,79}$/.test(id)) throw new Error("Run ID must use letters, numbers, underscores, dots, or hyphens, and be at most 80 characters.");
+  try { sessionStorage.setItem("verdictloop.run_id", id); } catch (_) { /* Optional browser convenience. */ }
   return id;
 }
 
@@ -469,7 +505,13 @@ async function runAction(action) {
   try {
     const data = await api(`/api/${action}`, { method: "POST", body: JSON.stringify({ run_id: id }) });
     if (action === "run-safe" || action === "run-unsafe") {
-      renderTrialAction(data, action === "run-safe" ? "safe" : "unsafe");
+      const kind = action === "run-safe" ? "safe" : "unsafe";
+      renderTrialAction(data, kind);
+      const narrow = window.matchMedia("(max-width: 680px)").matches;
+      (narrow ? byId(`${kind}-card`) : byId("outcomes")).scrollIntoView({
+        block: narrow ? "center" : "end",
+        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+      });
       await loadStatus(true, true);
     } else if (action === "compare") {
       renderComparison(data);
@@ -491,6 +533,11 @@ async function runAction(action) {
   }
 }
 
+try {
+  const savedRunId = sessionStorage.getItem("verdictloop.run_id");
+  if (savedRunId && /^[A-Za-z0-9][A-Za-z0-9_.-]{0,79}$/.test(savedRunId)) byId("run-id").value = savedRunId;
+} catch (_) { /* Atlas remains the source of truth when browser storage is unavailable. */ }
+
 byId("refresh-button").addEventListener("click", () => loadStatus());
 byId("safe-button").addEventListener("click", () => runAction("run-safe"));
 byId("unsafe-button").addEventListener("click", () => runAction("run-unsafe"));
@@ -499,6 +546,9 @@ byId("resume-button").addEventListener("click", () => runAction("resume"));
 byId("run-id").addEventListener("change", () => {
   state.compared = false;
   state.resumed = false;
+  renderOutcomeCard("safe", null);
+  renderOutcomeCard("unsafe", null);
+  byId("comparison").textContent = "Loading saved evaluation…";
   const readback = byId("resume-result");
   readback.classList.remove("is-unavailable");
   readback.textContent = "No reuse result has been loaded.";

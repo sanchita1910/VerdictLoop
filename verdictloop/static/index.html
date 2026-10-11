@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#132126">
-  <title>VerdictLoop | Permission-change court</title>
+  <title>VerdictLoop | Safer AI permissions</title>
   <link rel="stylesheet" href="/static/app.css">
   <script src="/static/app.js" defer></script>
 </head>
@@ -12,69 +12,117 @@
   <header class="masthead">
     <div class="masthead-inner">
       <div class="brand-mark" aria-hidden="true">VL</div>
-      <div class="brand-copy">
-        <strong>VerdictLoop</strong>
-        <span>CI/CD for agent permissions</span>
-      </div>
+      <div class="brand-copy"><strong>VerdictLoop</strong><span>Permission safety for AI agents</span></div>
       <div class="connection" id="connection" role="status"><span class="connection-dot"></span><span id="connection-text">Connecting to Atlas</span></div>
     </div>
   </header>
 
   <main class="shell">
     <section class="intro" aria-labelledby="page-title">
-      <div>
-        <p class="eyebrow">A LIVE POLICY TRIAL</p>
-        <h1 id="page-title">A permission change must prove its case.</h1>
-        <p class="intro-copy">Watch a blocked restart become a scoped, approved policy change. Then test a tempting shortcut against an independent oracle and the full finite fixture.</p>
+      <div class="intro-text">
+        <p class="eyebrow">A LIVE PERMISSION SAFETY DEMO</p>
+        <h1 id="page-title">Before an AI gets more permissions, we make sure they're safe.</h1>
+        <p class="intro-copy">VerdictLoop tests proposed permission changes, blocks dangerous ones, and learns to test smarter.</p>
       </div>
       <div class="run-controls">
-        <label for="run-id">Atlas run ID</label>
+        <label for="run-id">Demo run</label>
         <div class="run-input-row">
           <input id="run-id" name="run-id" value="demo" pattern="[A-Za-z0-9][A-Za-z0-9_.-]{0,79}" maxlength="80" autocomplete="off" spellcheck="false" aria-describedby="run-help">
           <button type="button" class="button button-outline" id="refresh-button">Reload Atlas</button>
         </div>
-        <small id="run-help">Use the same ID to inspect a run after a fresh process starts.</small>
+        <small id="run-help">Use a new name for a fresh demo. Reload this name to see saved results.</small>
       </div>
     </section>
 
-    <div class="message" id="message" role="status" aria-live="polite">Loading the active run from Atlas…</div>
+    <div class="message" id="message" role="status" aria-live="polite">Loading saved results from Atlas…</div>
 
-    <section class="state-card" aria-label="Active Atlas state">
-      <div class="state-heading">
-        <div><p class="eyebrow">THE ACTIVE POINTER</p><h2>Atlas state</h2></div>
+    <section class="action-panel" aria-labelledby="actions-title">
+      <div class="section-heading">
+        <div><p class="eyebrow">START HERE</p><h2 id="actions-title">Try two permission changes</h2></div>
+        <p>The second test becomes available after the safe change is approved.</p>
+      </div>
+      <div class="action-grid">
+        <div class="action-tile action-safe">
+          <span class="action-number">01 · APPROVED REQUEST</span>
+          <button type="button" class="button button-primary" id="safe-button">Test a Safe Change <span aria-hidden="true">→</span></button>
+          <p>An approved server restart should be allowed. A fresh run starts here.</p>
+        </div>
+        <div class="action-tile action-danger">
+          <span class="action-number">02 · RISKY REQUEST</span>
+          <button type="button" class="button button-danger" id="unsafe-button">Test a Dangerous Change <span aria-hidden="true">→</span></button>
+          <p id="unsafe-help">First approve the safe change. Then test a rule that removes approval checks.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="outcomes" id="outcomes" aria-label="Saved test results">
+      <article class="outcome-card outcome-safe" id="safe-card" aria-labelledby="safe-verdict">
+        <p class="eyebrow">SAFE CHANGE</p>
+        <h2 id="safe-verdict">Not tested yet</h2>
+        <p id="safe-explanation">Test the safe change to see the actual Judge decision.</p>
+        <p class="proof-line" id="safe-proof">No saved trial for this run.</p>
+        <p class="witness-line" id="safe-witness" hidden></p>
+        <details><summary>Technical details</summary><div id="safe-technical" class="technical-content"></div></details>
+      </article>
+      <article class="outcome-card outcome-danger" id="unsafe-card" aria-labelledby="unsafe-verdict">
+        <p class="eyebrow">DANGEROUS CHANGE</p>
+        <h2 id="unsafe-verdict">Not tested yet</h2>
+        <p id="unsafe-explanation">The dangerous test unlocks after the safe policy is active.</p>
+        <p class="proof-line" id="unsafe-proof">No saved trial for this run.</p>
+        <p class="witness-line" id="unsafe-witness" hidden></p>
+        <details><summary>Technical details</summary><div id="unsafe-technical" class="technical-content"></div></details>
+      </article>
+    </section>
+
+    <div class="showcase-grid">
+      <section class="state-card" aria-label="MongoDB Atlas state">
+        <p class="eyebrow">MONGODB ATLAS</p>
+        <h2>Safety decisions that survive a restart</h2>
+        <p class="state-copy">VerdictLoop remembers approved policies, test results, and learned strategies — even after restarting.</p>
+        <dl class="state-grid">
+          <div><dt>Active test strategy</dt><dd id="active-strategy">—</dd></div>
+          <div><dt>Atlas revision</dt><dd id="active-revision">—</dd></div>
+        </dl>
         <span class="phase-pill" id="phase">Loading</span>
+        <details class="dark-details"><summary>Technical details</summary>
+          <dl class="detail-grid">
+            <div><dt>Active policy</dt><dd id="active-policy">—</dd></div>
+            <div><dt>Policy version</dt><dd id="active-version">—</dd></div>
+            <div class="wide"><dt>Fixture hash</dt><dd id="fixture-hash">—</dd></div>
+          </dl>
+        </details>
+      </section>
+
+      <section class="panel learning-panel" aria-labelledby="compare-title">
+        <p class="eyebrow">LEARNING</p>
+        <h2 id="compare-title">Testing gets smarter</h2>
+        <p class="panel-copy">A small synthetic held-out evaluation checks whether the learned test strategy finds more dangerous candidates within the same eight-decision limit.</p>
+        <button type="button" class="button button-outline" id="compare-button">Show Learning Results</button>
+        <div id="comparison" class="result-box">Run the safe change first to unlock the saved comparison.</div>
+      </section>
+    </div>
+
+    <section class="panel workshop-panel" aria-labelledby="reuse-title">
+      <div>
+        <p class="eyebrow">RAINDROP WORKSHOP</p>
+        <h2 id="reuse-title">See what a quick test missed</h2>
+        <p class="panel-copy">When a quick test misses something, Workshop helps us investigate why. The full safety check still decides whether a change is approved.</p>
       </div>
-      <dl class="state-grid">
-        <div><dt>Policy</dt><dd id="active-policy">—</dd></div>
-        <div><dt>Version</dt><dd id="active-version">—</dd></div>
-        <div><dt>Probe strategy</dt><dd id="active-strategy">—</dd></div>
-        <div><dt>Revision</dt><dd id="active-revision">—</dd></div>
-        <div class="wide"><dt>Fixture hash</dt><dd id="fixture-hash">—</dd></div>
-      </dl>
+      <div class="workshop-action">
+        <button type="button" class="button button-outline" id="resume-button">Run a Quick-vs-Full Check</button>
+        <a href="http://localhost:5899/" target="_blank" rel="noopener noreferrer">Open Workshop ↗</a>
+      </div>
+      <div id="resume-result" class="result-box">Run the learning comparison to unlock this check.</div>
     </section>
 
-    <nav class="workflow" aria-label="Demonstration workflow">
-      <ol>
-        <li data-step="propose"><span>01</span>Propose</li>
-        <li data-step="probe"><span>02</span>Probe</li>
-        <li data-step="judge"><span>03</span>Judge</li>
-        <li data-step="learn"><span>04</span>Learn</li>
-        <li data-step="persist"><span>05</span>Persist</li>
-        <li data-step="reuse"><span>06</span>Reuse</li>
-      </ol>
-    </nav>
-
-    <div class="content-grid">
-      <div class="main-column">
+    <details class="technical-area">
+      <summary>Technical details for the full policy trial</summary>
+      <div class="technical-grid">
         <section class="panel" aria-labelledby="task-title">
-          <div class="panel-header">
-            <div><p class="eyebrow">01 / THE BLOCKED TASK</p><h2 id="task-title">A restart with valid approval</h2></div>
-            <span class="panel-icon" aria-hidden="true">↗</span>
-          </div>
-          <p class="panel-copy">The independent oracle recognizes a legitimate restart. Policy v1 still blocks it, so the Builder proposes a narrow change.</p>
+          <p class="eyebrow">ORIGINAL REQUEST</p><h2 id="task-title">Approved restart</h2>
           <div class="decision-pair">
             <div><span>Independent oracle</span><strong id="task-oracle">—</strong></div>
-            <div><span id="task-policy-label">Active policy before proposal</span><strong id="task-policy">—</strong></div>
+            <div><span id="task-policy-label">Policy before proposal</span><strong id="task-policy">—</strong></div>
           </div>
           <dl class="detail-grid">
             <div><dt>Tool</dt><dd id="task-tool">—</dd></div>
@@ -84,30 +132,19 @@
             <div><dt>Incident</dt><dd id="task-incident">—</dd></div>
             <div><dt>Case ID</dt><dd id="task-case">—</dd></div>
           </dl>
-          <button type="button" class="button button-primary" id="safe-button">Propose and judge safe change <span aria-hidden="true">→</span></button>
         </section>
-
         <section class="panel" aria-labelledby="candidate-title">
-          <div class="panel-header">
-            <div><p class="eyebrow">02 / THE CANDIDATE</p><h2 id="candidate-title">Review the proposed diff</h2></div>
-            <span class="panel-icon" aria-hidden="true">≡</span>
-          </div>
-          <p class="panel-copy">The candidate is evidence, not active policy. Its rules must survive the Judge before the Atlas pointer can move.</p>
+          <p class="eyebrow">PROPOSED POLICY</p><h2 id="candidate-title">Rule change</h2>
           <dl class="detail-grid">
             <div><dt>Candidate ID</dt><dd id="candidate-id">Awaiting proposal</dd></div>
             <div><dt>Producer</dt><dd id="candidate-producer">—</dd></div>
             <div><dt>Mutation class</dt><dd id="candidate-mutation">—</dd></div>
-            <div><dt>Policy content hash</dt><dd id="candidate-hash">—</dd></div>
+            <div><dt>Content hash</dt><dd id="candidate-hash">—</dd></div>
           </dl>
-          <h3>Policy rule diff</h3>
-          <pre class="code-block" id="candidate-diff">Run a proposal to see its actual policy diff.</pre>
+          <h3>Policy JSON</h3><pre class="code-block" id="candidate-diff">Run a test to see the real rule diff.</pre>
         </section>
-
         <section class="panel" aria-labelledby="judge-title">
-          <div class="panel-header">
-            <div><p class="eyebrow">03 / THE FULL GATE</p><h2 id="judge-title">Decisions, evidence, verdict</h2></div>
-            <span class="panel-icon" aria-hidden="true">⚖</span>
-          </div>
+          <p class="eyebrow">FULL SAFETY CHECK</p><h2 id="judge-title">Latest trial evidence</h2>
           <div class="verdict-row">
             <div><span class="label">Judge verdict</span><strong id="judge-verdict" class="verdict">Awaiting trial</strong></div>
             <div><span class="label">Trial ID</span><strong id="trial-id" class="mono">—</strong></div>
@@ -124,49 +161,16 @@
             <div><dt>Universe hash</dt><dd id="universe-hash">—</dd></div>
             <div class="wide"><dt>Failure classes</dt><dd id="failure-classes">—</dd></div>
           </dl>
-          <h3>Executed evidence</h3>
-          <div id="evidence" class="evidence-empty">Evidence appears here after the Judge runs.</div>
-          <div class="section-divider"></div>
-          <p class="panel-copy">Now try removing approval from the rule. The oracle and candidate will decide the same unapproved call independently.</p>
-          <button type="button" class="button button-danger" id="unsafe-button">Test approval-removal candidate <span aria-hidden="true">→</span></button>
+          <h3>Full counterexample list</h3><div id="evidence" class="evidence-empty">Evidence appears here after the Judge runs.</div>
         </section>
-
-        <section class="panel" aria-labelledby="compare-title">
-          <div class="panel-header">
-            <div><p class="eyebrow">04 / EVALUATOR LEARNING</p><h2 id="compare-title">Uniform versus learned probes</h2></div>
-            <span class="panel-icon" aria-hidden="true">↔</span>
-          </div>
-          <p class="panel-copy">A frozen held-out comparison uses the same candidate universe and eight individual decisions per trial. Results appear only after the backend finishes a real evaluation.</p>
-          <button type="button" class="button button-outline" id="compare-button">Run held-out comparison</button>
-          <div id="comparison" class="result-box">No evaluation has been loaded.</div>
-        </section>
-
-        <section class="panel" aria-labelledby="reuse-title">
-          <div class="panel-header">
-            <div><p class="eyebrow">05 / PERSIST + REUSE</p><h2 id="reuse-title">Read back the saved strategy</h2></div>
-            <span class="panel-icon" aria-hidden="true">↻</span>
-          </div>
-          <p class="panel-copy">Read the active strategy from Atlas and run a later trial with it. A separate CLI restart demonstrates reuse across processes.</p>
-          <button type="button" class="button button-outline" id="resume-button">Read back and run later trial</button>
-          <div id="resume-result" class="result-box">No reuse result has been loaded.</div>
+        <section class="panel" aria-labelledby="history-title">
+          <p class="eyebrow">MONGODB ATLAS</p><h2 id="history-title">Persisted trial history</h2>
+          <div id="trial-history" class="history-empty">No trial has been loaded.</div>
+          <h3>Activity</h3><ol id="activity" class="activity-list"><li>Waiting for the active Atlas state.</li></ol>
         </section>
       </div>
-
-      <aside class="side-column" aria-label="Stored evidence">
-        <section class="panel side-panel" aria-labelledby="history-title">
-          <p class="eyebrow">ATLAS EVIDENCE</p>
-          <h2 id="history-title">Persisted trials</h2>
-          <p class="side-copy">These IDs and verdicts are loaded from the run, including after a page refresh.</p>
-          <div id="trial-history" class="history-empty">No trial has been loaded.</div>
-        </section>
-        <section class="panel side-panel" aria-labelledby="activity-title">
-          <p class="eyebrow">SESSION ACTIVITY</p>
-          <h2 id="activity-title">What just happened</h2>
-          <ol id="activity" class="activity-list"><li>Waiting for the active Atlas state.</li></ol>
-        </section>
-      </aside>
-    </div>
+    </details>
   </main>
-  <footer class="footer">One simulated tool: <strong>restart_service</strong> · Independent oracle · Deterministic full gate · Atlas revision check</footer>
+  <footer class="footer">VerdictLoop · One simulated server-restart tool · Independent safety check · Atlas-backed evidence</footer>
 </body>
 </html>
