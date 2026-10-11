@@ -76,3 +76,19 @@ def test_gate_error_fails_closed(fx, v1, safe, target, monkeypatch):
 
 def test_judge_is_deterministic(fx, v1, no_approval, target):
     assert admit(v1, no_approval, target, fx) == admit(v1, no_approval, target, fx)
+
+
+def test_gate_rejects_rule_for_actor_outside_inventory(fx, v1, safe, target):
+    """P1 regression: an untested actor must not be allowable."""
+    eve = make_rule(rule_id="eve", actors=("eve",), require_valid_approval=False)
+    cand = make_policy(fx, *safe.rules, eve)
+    assert decide(cand, make_call(actor="eve", approval_context_id=fleet.UNAPPROVED_CTX), fx) is False
+    r = admit(v1, cand, target, fx)
+    assert FailureClass.UNAUTHORIZED_GRANT not in r.failure_classes
+
+
+def test_gate_rejects_rule_for_tool_outside_inventory(fx, v1, safe, target):
+    """P1 regression: an untested tool must not be allowable."""
+    rm = make_rule(rule_id="rm", tools=("delete_service",), require_valid_approval=False)
+    cand = make_policy(fx, *safe.rules, rm)
+    assert decide(cand, make_call(tool="delete_service", approval_context_id=fleet.UNAPPROVED_CTX), fx) is False

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from verdictloop.fleet import resolve
+from verdictloop.fleet import resolve, trusted_approvals
 from verdictloop.schema import Approval, Call, Fixture
 
 
@@ -19,8 +19,7 @@ def oracle(call: Call, fixture: Fixture, approvals: list[Approval] | None = None
     actor = next((a for a in fixture.actors if a.actor_id == call.actor), None)
     if actor is None or actor.tenant != resolved.tenant or resolved.service not in actor.services:
         return False
-    if approvals is None:
-        approvals = fixture.approvals_for(call.approval_context_id)
+    approvals = trusted_approvals(fixture, approvals, call.approval_context_id)
     return any(
         a.context_id == call.approval_context_id
         and a.actor == call.actor

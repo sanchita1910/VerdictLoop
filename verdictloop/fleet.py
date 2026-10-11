@@ -80,16 +80,33 @@ def build_fixture() -> Fixture:
 
 
 def resolve(call: Call, fixture: Fixture) -> ResolvedResource | None:
-    """Resolve a raw (tenant, service, env_label) to a canonical resource."""
-    for r in fixture.resources:
-        if r.tenant == call.tenant and r.service == call.service and call.env_label in r.labels:
-            return ResolvedResource(
-                resource_id=r.resource_id,
-                tenant=r.tenant,
-                service=r.service,
-                env_canonical=r.env_canonical,
-            )
-    return None
+    """Resolve a raw (tenant, service, env_label) to a canonical resource.
+
+    Fails closed (None) when the label matches no resource or is ambiguous
+    within its tenant/service scope.
+    """
+    matches = [
+        r for r in fixture.resources
+        if r.tenant == call.tenant and r.service == call.service and call.env_label in r.labels
+    ]
+    if len(matches) != 1:
+        return None
+    r = matches[0]
+    return ResolvedResource(
+        resource_id=r.resource_id,
+        tenant=r.tenant,
+        service=r.service,
+        env_canonical=r.env_canonical,
+    )
+
+
+def trusted_approvals(fixture: Fixture, approvals: list[Approval] | None, context_id: str) -> list[Approval]:
+    """Only approval records that exist in the trusted fixture count."""
+    trusted = fixture.approvals_for(context_id)
+    if approvals is None:
+        return trusted
+    allowed = set(trusted)
+    return [a for a in approvals if a in allowed]
 
 
 _INTEGRITY: dict[int, tuple[Fixture, bool]] = {}

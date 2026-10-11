@@ -1,6 +1,6 @@
 """Known direct-entry authorization gaps for Developer B's safety modules.
 
-These cases are marked xfail until the agreed B-owned resolver/oracle fixes land.
+These were strict xfails until the B-owned resolver/oracle fixes landed.
 The production fixture remains unchanged; the tests exercise explicit inputs.
 """
 
@@ -28,7 +28,6 @@ def test_supplied_fixture_approvals_match_default_oracle():
         assert oracle(call, fixture, approvals=fixture.approvals_for(call.approval_context_id)) == oracle(call, fixture)
 
 
-@pytest.mark.xfail(strict=True, reason="B-owned resolver must reject ambiguous raw labels")
 def test_resolver_rejects_ambiguous_label_within_scope():
     fixture = build_fixture()
     resources = tuple(
@@ -41,7 +40,6 @@ def test_resolver_rejects_ambiguous_label_within_scope():
     assert resolve(_call(), ambiguous) is None
 
 
-@pytest.mark.xfail(strict=True, reason="B-owned oracle must constrain supplied approvals to fixture")
 def test_oracle_rejects_supplied_approval_not_in_fixture():
     fixture = build_fixture()
     call = _call(UNAPPROVED_CTX)

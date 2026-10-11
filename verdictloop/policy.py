@@ -6,7 +6,7 @@ from typing import Any
 
 from pydantic import ValidationError
 
-from verdictloop.fleet import fixture_is_intact, resolve
+from verdictloop.fleet import fixture_is_intact, resolve, trusted_approvals
 from verdictloop.schema import (
     WILDCARD,
     Approval,
@@ -73,9 +73,12 @@ def decide(
             return False
     if not fixture_is_intact(fixture) or policy.fixture_hash != fixture.fixture_hash:
         return False
+    # Actors and tools outside the trusted inventory are never evaluated: the
+    # full gate only sweeps inventory values, so allowing others would be untested.
+    if call.tool not in fixture.tools or all(a.actor_id != call.actor for a in fixture.actors):
+        return False
     resolved = resolve(call, fixture)
     if resolved is None:
         return False
-    if approvals is None:
-        approvals = fixture.approvals_for(call.approval_context_id)
+    approvals = trusted_approvals(fixture, approvals, call.approval_context_id)
     return any(_rule_allows(rule, call, resolved, approvals) for rule in policy.rules)
